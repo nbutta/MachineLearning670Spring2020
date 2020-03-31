@@ -1,7 +1,19 @@
-function output = detect_roundness(RGB)
+%%
+% File: detect_roundness.m
+%   Detect roundness in an RGB image and plot the detected results.
+% Inputs:
+%   - RGB_rescaled: Rescaled Image (RGB colorspace)
+%
+% Outputs:
+%   - None
+%
+% Info:
+%   Class: EN.525.670.81 - Machine Learning for Signal Processing
+%
+function output = detect_roundness(RGB_rescaled)
 
 %%  Detect roundness....
-
+    output = [];
     % 
     % % Try boosting contrast first before thresholding
     LAB1 = rgb2lab(RGB_rescaled);

@@ -19,7 +19,10 @@ clc         % Comannd Line Clear
 
 %% Load the training csv
 
-sBasePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/'; 
+% Data set: https://www.kaggle.com/meowmeowmeowmeowmeow/gtsrb-german-traffic-sign
+
+% GTSRB folder one directory up
+sBasePath = fullfile(fileparts(fullfile(mfilename('fullpath'))),'..','gtsrb-german-traffic-sign/');
 
 sTrainingPath = [sBasePath, 'Train.csv'];
 fID = fopen([sBasePath, 'Train.csv'], 'r');
@@ -51,7 +54,7 @@ montage({RGB, RGB_cropped});
 RGB_rescaled = imresize(RGB, [50 50]);
 figure, subplot(3, 5, 1), imshow(RGB_rescaled)
 
-output = detect_roundness(RGB_rescaled);
+[~] = detect_roundness(RGB_rescaled);
 
 
 %% KMeans the image
