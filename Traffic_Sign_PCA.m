@@ -10,7 +10,8 @@ clc         % Comannd Line Clear
 
 %% 1. Load the training data.
 
-sBasePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/'; 
+%sBasePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/'; 
+sBasePath = fullfile(fileparts(fullfile(mfilename('fullpath'))),'..','gtsrb-german-traffic-sign/');
 
 sTrainingPath = [sBasePath, 'Train.csv'];
 sTestPath = [sBasePath, 'Test.csv'];
@@ -37,77 +38,81 @@ testRoiX2 = testTbl.Roi_X2;
 testRoiY2 = testTbl.Roi_Y2;
 testClasses = testTbl.ClassId;
 
-% 
-% A = zeros(length(testPaths), 50*50);
-% 
-% for i = 1:length(testPaths)
-% 
-%     % Read in the image at the path
-%     RGB = imread([sBasePath, char(testPaths(i))]);
-% 
-%     % Perhaps grab the region of interest
-%     
-%     if (testRoiY1(i) == 0)
-%         testRoiY1(i) = 1;
-%     end
-%     if (testRoiY2(i) == 0)
-%         testRoiY2(i) = 1;
-%     end
-%     if (testRoiX1(i) == 0)
-%         testRoiX1(i) = 1;
-%     end
-%     if (trainRoiX2(i) == 0)
-%         testRoiX2(i) = 1;
-%     end
-%     RGB_cropped = RGB(testRoiY1(i):testRoiY2(i), testRoiX1(i):testRoiX2(i), :);
-% 
-%     % Resize the image to an experimentally-determined size
-%     %(https://www.mathworks.com/help/images/ref/imresize.html#d120e151526)
-%     RGB_rescaled = imresize(RGB, [50 50]);
-%     
-%     GRAY = rgb2gray(RGB_rescaled);
-%     
-%     A(i, :) = reshape(GRAY, 1, 50*50);
-% end
+ 
+ A = zeros(length(testPaths), 50*50);
+ 
+ for i = 1:length(testPaths)
+ 
+     % Read in the image at the path
+     RGB = imread([sBasePath, char(testPaths(i))]);
+ 
+     % Perhaps grab the region of interest
+     
+     if (testRoiY1(i) == 0)
+         testRoiY1(i) = 1;
+     end
+     if (testRoiY2(i) == 0)
+         testRoiY2(i) = 1;
+     end
+     if (testRoiX1(i) == 0)
+         testRoiX1(i) = 1;
+     end
+     if (trainRoiX2(i) == 0)
+         testRoiX2(i) = 1;
+     end
+     RGB_cropped = RGB(testRoiY1(i):testRoiY2(i), testRoiX1(i):testRoiX2(i), :);
+ 
+     % Resize the image to an experimentally-determined size
+     %(https://www.mathworks.com/help/images/ref/imresize.html#d120e151526)
+     RGB_rescaled = imresize(RGB, [50 50]);
+     
+     GRAY = rgb2gray(RGB_rescaled);
+     
+     A(i, :) = reshape(GRAY, 1, 50*50);
+ end
 
-% save('signstest.mat', 'A');
+save('signstest.mat', 'A');
 
-% A = zeros(length(trainPaths), 50*50);
-% 
-% for i = 1:length(trainPaths)
-% 
-%     % Read in the image at the path
-%     RGB = imread([sBasePath, char(trainPaths(i))]);
-% 
-%     % Perhaps grab the region of interest
-%     
-%     if (trainRoiY1(i) == 0)
-%         trainRoiY1(i) = 1;
-%     end
-%     if (trainRoiY2(i) == 0)
-%         trainRoiY2(i) = 1;
-%     end
-%     if (trainRoiX1(i) == 0)
-%         trainRoiX1(i) = 1;
-%     end
-%     if (trainRoiX2(i) == 0)
-%         trainRoiX2(i) = 1;
-%     end
-%     RGB_cropped = RGB(trainRoiY1(i):trainRoiY2(i), trainRoiX1(i):trainRoiX2(i), :);
-% 
-%     % Resize the image to an experimentally-determined size
-%     %(https://www.mathworks.com/help/images/ref/imresize.html#d120e151526)
-%     RGB_rescaled = imresize(RGB, [50 50]);
-%     
-%     GRAY = rgb2gray(RGB_rescaled);
-%     
-%     A(i, :) = reshape(GRAY, 1, 50*50);
-% end
+A = zeros(length(trainPaths), 50*50);
+ 
+for i = 1:length(trainPaths)
+ 
+     % Read in the image at the path
+     RGB = imread([sBasePath, char(trainPaths(i))]);
+ 
+     % Perhaps grab the region of interest
+     
+     if (trainRoiY1(i) == 0)
+         trainRoiY1(i) = 1;
+     end
+     if (trainRoiY2(i) == 0)
+         trainRoiY2(i) = 1;
+     end
+     if (trainRoiX1(i) == 0)
+         trainRoiX1(i) = 1;
+     end
+     if (trainRoiX2(i) == 0)
+         trainRoiX2(i) = 1;
+     end
+     RGB_cropped = RGB(trainRoiY1(i):trainRoiY2(i), trainRoiX1(i):trainRoiX2(i), :);
+ 
+     % Resize the image to an experimentally-determined size
+     %(https://www.mathworks.com/help/images/ref/imresize.html#d120e151526)
+     RGB_rescaled = imresize(RGB, [50 50]);
+     
+     GRAY = rgb2gray(RGB_rescaled);
+     
+     A(i, :) = reshape(GRAY, 1, 50*50);
+end
 
-% save('signstrain.mat', 'A');
+save('signstrain.mat', 'A');
 
-signstrain = load('C:\Users\j39950\Documents\MATLAB\670 Machine Learning\signstrain.mat');
-signstest  = load('C:\Users\j39950\Documents\MATLAB\670 Machine Learning\signstest.mat');
+%signstrain = load('C:\Users\j39950\Documents\MATLAB\670 Machine Learning\signstrain.mat');
+%signstest  = load('C:\Users\j39950\Documents\MATLAB\670 Machine Learning\signstest.mat');
+
+signstrain = load('signstrain.mat');
+signstest  = load('signstest.mat');
+
 
 A = signstrain.A;
 A_labels = trainClasses;
