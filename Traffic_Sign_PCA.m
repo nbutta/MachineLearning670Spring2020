@@ -10,109 +10,34 @@ clc         % Comannd Line Clear
 
 %% 1. Load the training data.
 
-%sBasePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/'; 
 sBasePath = fullfile(fileparts(fullfile(mfilename('fullpath'))),'..','gtsrb-german-traffic-sign/');
 
 sTrainingPath = [sBasePath, 'Train.csv'];
 sTestPath = [sBasePath, 'Test.csv'];
 
-trainTbl = readtable(sTrainingPath);
+% Find signstrain.mat and signstest.mat
+% If not found generate them
+curDir = pwd;
+filename = [curDir,'/','signstrain.mat'];
 
-trainPaths = trainTbl.Path;
-trainWidths = trainTbl.Width;
-trainHeights = trainTbl.Height;
-trainRoiX1 = trainTbl.Roi_X1;
-trainRoiY1 = trainTbl.Roi_Y1;
-trainRoiX2 = trainTbl.Roi_X2;
-trainRoiY2 = trainTbl.Roi_Y2;
-trainClasses = trainTbl.ClassId;
-
-testTbl = readtable(sTestPath);
-
-testPaths = testTbl.Path;
-testWidths = testTbl.Width;
-testHeights = testTbl.Height;
-testRoiX1 = testTbl.Roi_X1;
-testRoiY1 = testTbl.Roi_Y1;
-testRoiX2 = testTbl.Roi_X2;
-testRoiY2 = testTbl.Roi_Y2;
-testClasses = testTbl.ClassId;
-
- 
- A = zeros(length(testPaths), 50*50);
- 
- for i = 1:length(testPaths)
- 
-     % Read in the image at the path
-     RGB = imread([sBasePath, char(testPaths(i))]);
- 
-     % Perhaps grab the region of interest
-     
-     if (testRoiY1(i) == 0)
-         testRoiY1(i) = 1;
-     end
-     if (testRoiY2(i) == 0)
-         testRoiY2(i) = 1;
-     end
-     if (testRoiX1(i) == 0)
-         testRoiX1(i) = 1;
-     end
-     if (trainRoiX2(i) == 0)
-         testRoiX2(i) = 1;
-     end
-     RGB_cropped = RGB(testRoiY1(i):testRoiY2(i), testRoiX1(i):testRoiX2(i), :);
- 
-     % Resize the image to an experimentally-determined size
-     %(https://www.mathworks.com/help/images/ref/imresize.html#d120e151526)
-     RGB_rescaled = imresize(RGB, [50 50]);
-     
-     GRAY = rgb2gray(RGB_rescaled);
-     
-     A(i, :) = reshape(GRAY, 1, 50*50);
- end
-
-save('signstest.mat', 'A');
-
-A = zeros(length(trainPaths), 50*50);
- 
-for i = 1:length(trainPaths)
- 
-     % Read in the image at the path
-     RGB = imread([sBasePath, char(trainPaths(i))]);
- 
-     % Perhaps grab the region of interest
-     
-     if (trainRoiY1(i) == 0)
-         trainRoiY1(i) = 1;
-     end
-     if (trainRoiY2(i) == 0)
-         trainRoiY2(i) = 1;
-     end
-     if (trainRoiX1(i) == 0)
-         trainRoiX1(i) = 1;
-     end
-     if (trainRoiX2(i) == 0)
-         trainRoiX2(i) = 1;
-     end
-     RGB_cropped = RGB(trainRoiY1(i):trainRoiY2(i), trainRoiX1(i):trainRoiX2(i), :);
- 
-     % Resize the image to an experimentally-determined size
-     %(https://www.mathworks.com/help/images/ref/imresize.html#d120e151526)
-     RGB_rescaled = imresize(RGB, [50 50]);
-     
-     GRAY = rgb2gray(RGB_rescaled);
-     
-     A(i, :) = reshape(GRAY, 1, 50*50);
+if isfile(filename)
+    signstrain = load(filename);
+else
+    % generate matfile
+    signstrain = generate_csv2mat(sTrainingPath,filename);
 end
 
-save('signstrain.mat', 'A');
+filename = [curDir,'/','signstest.mat'];
 
-%signstrain = load('C:\Users\j39950\Documents\MATLAB\670 Machine Learning\signstrain.mat');
-%signstest  = load('C:\Users\j39950\Documents\MATLAB\670 Machine Learning\signstest.mat');
+if isfile(filename)
+    signstest = load(filename);
+else
+     % generate matfile
+     signstest = generate_csv2mat(sTestPath,filename);
+end
 
-signstrain = load('signstrain.mat');
-signstest  = load('signstest.mat');
-
+trainClasses = signstrain.classes;
+testClasses = signstest.classes;
 
 A = signstrain.A;
 A_labels = trainClasses;
@@ -358,6 +283,13 @@ end
 
 % (https://www.mathworks.com/help/deeplearning/ref/confusionchart.html)
 
+% check the performance of the model
+cp = classperf(known_classes,predicted_classes);
+
+fprintf('PCA - PCA Basis: %d CorrectRate: %f ErrorRate: %f \n',...
+    40,...
+    cp.CorrectRate,cp.ErrorRate);
+
 fig = figure;
 [C, order] = confusionmat(known_classes, predicted_classes);
 cm = confusionchart(C, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
@@ -366,3 +298,6 @@ cm = confusionchart(C, 'RowSummary','row-normalized','ColumnSummary','column-nor
 cm.Normalization = 'row-normalized'; 
 sortClasses(cm,'descending-diagonal')
 cm.Normalization = 'absolute';
+
+% write output for GTSRB Analysis Tool
+generate_tsrb_results('PCA_Results.csv',signstrain,signstest,predicted_classes);

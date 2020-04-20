@@ -20,7 +20,8 @@ sTrainingPath = [sBasePath, 'Train.csv'];
 
 % Find signstrain.mat and signstest.mat
 % If not found generate them
-filename = [sBasePath,'../','signstrain.mat'];
+curDir = pwd;
+filename = [curDir,'/','signstrain.mat'];
 
 if isfile(filename)
     signstrain = load(filename);
@@ -33,7 +34,7 @@ end
 
 sTestPath = [sBasePath, 'Test.csv'];
 
-filename = [sBasePath,'../','signstest.mat'];
+filename = [curDir,'/','signstest.mat'];
 
 if isfile(filename)
     signstest = load(filename);
@@ -42,6 +43,8 @@ else
      signstest = generate_csv2mat(sTestPath,filename);
 end
 
+
+%% 3. Classify data
 % Set train and test data
 tr_images = signstrain.A;
 tr_labels = signstrain.classes;
