@@ -39,8 +39,8 @@ filename = [curDir,'/','signstest.mat'];
 if isfile(filename)
     signstest = load(filename);
 else
-     % generate matfile
-     signstest = generate_csv2mat(sTestPath,filename);
+    % generate matfile
+    signstest = generate_csv2mat(sTestPath,filename,'imPreProcess',true);
 end
 
 
@@ -50,10 +50,12 @@ tr_images = signstrain.A;
 tr_labels = signstrain.classes;
 
 test_images = signstest.A;
+%test_images = signstest.B;
 test_labels = signstest.classes;
 
 % Perform dimensionality reduction
-[V, D] = pca_basis(tr_images);
+numBasis = 120;
+[V, D] = pca_basis(tr_images,numBasis);
 
 % Projections
 train_projection = tr_images*V;
@@ -67,7 +69,7 @@ p_labels = knn_predict(k_neighbors,train_projection, tr_labels, test_projection)
 cp = classperf(test_labels,p_labels);
 
 fprintf('KNN - PCA Basis: %d k-neighbors: %d CorrectRate: %f ErrorRate: %f \n',...
-    40,...
+    numBasis,...
     k_neighbors,...
     cp.CorrectRate,cp.ErrorRate);
 
@@ -77,7 +79,7 @@ cm = confusionchart(C, 'RowSummary','row-normalized','ColumnSummary','column-nor
 cm.Normalization = 'row-normalized'; 
 sortClasses(cm,'descending-diagonal')
 cm.Normalization = 'absolute';
-title(['KNN - PCA Basis: ',num2str(40), ' k-neighbors: ',num2str(k_neighbors)]);
+title(['KNN - PCA Basis: ',num2str(numBasis), ' k-neighbors: ',num2str(k_neighbors)]);
 
 % write output for GTSRB Analysis Tool
 generate_tsrb_results('KNN_Results.csv',signstrain,signstest,p_labels);

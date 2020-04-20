@@ -1,4 +1,4 @@
-function [eigfaces, eigvals] = pca_basis(A)
+function [eigfaces, eigvals] = pca_basis(A,numBasis)
 %
 % This function performs PCA on the passed input data and returns
 % the data's PCA vectors and their corresponding eigenvalues.
@@ -40,7 +40,7 @@ function [eigfaces, eigvals] = pca_basis(A)
     % D is diagonal, ordered largest to smallest (eigenvalues/variances)
 
     % Get the 40 largest magnitude eigenvalues and corresponding eigenvectors
-    [V, D] = eigs(double(C), 40, 'lm');
+    [V, D] = eigs(double(C), numBasis, 'lm');
    
     % Normalize the eigenvectors by the corresponding eigenvalues
     eigenvalues = diag(D);

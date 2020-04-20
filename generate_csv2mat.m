@@ -8,7 +8,15 @@
 %   Term: Spring 2020
 %
 
-function [data] = generate_csv2mat(fInputName,fOutName)
+function [data] = generate_csv2mat(fInputName,fOutName,varargin)
+
+p = inputParser;
+
+p.KeepUnmatched = true;
+p.addOptional('imPreProcess',false);  
+
+p.parse(p,varargin{:});
+imPreProcess = p.Results.imPreProcess;
 
 data = [];
 
@@ -27,6 +35,7 @@ classes = dataTbl.ClassId;
 
  
 A = zeros(length(paths), 50*50);
+B = zeros(length(paths), 50*50);
  
 for i = 1:length(paths)
  
@@ -56,6 +65,11 @@ for i = 1:length(paths)
      GRAY = rgb2gray(RGB_rescaled);
      
      A(i, :) = reshape(GRAY, 1, 50*50);
+     
+     if imPreProcess == true
+         J = histeq(GRAY);
+         B(i,:) = reshape(J, 1, 50*50);
+     end
 end
 
 data.A = A;
@@ -68,8 +82,16 @@ data.roiX1 = roiX1;
 data.roiY1 = roiY1;
 data.roiX2 = roiX2;
 data.roiY2 = roiY2;
-save(fOutName, 'A',...
+
+if imPreProcess == true
+    data.B = B;
+    save(fOutName, 'A','B',...
     'classes','paths','widths','heights',...
     'roiX1','roiY1','roiX2','roiY2');
+else
+      save(fOutName, 'A',...
+    'classes','paths','widths','heights',...
+    'roiX1','roiY1','roiX2','roiY2');  
+end
 
 end

@@ -55,8 +55,8 @@ num_signs = 43;
 % construct a subspace with dimensionality H less than or equal to such 
 % that this subspace has the maximum dispersion for the projections. 
 % To extract this subspace, use Principal Component Analysis
-
-[eigsigns, eigvals] = pca_basis(A);
+numBasis = 120;
+[eigsigns, eigvals] = pca_basis(A,numBasis);
 
 % Produce a column vector of eigenvalues
 eigvals = diag(eigvals);
@@ -274,7 +274,7 @@ for i = 1:num_test_signs
     
    % training_scores = A*eigsigns;
   %  [pred, closest_sign] = pca_predict(test_sign, eigsigns, 40, A, A_labels);
-    [pred2, closest_sign2] = pca_predict2(test_sign, eigsigns, 40, training_scores, A, A_labels);
+    [pred2, closest_sign2] = pca_predict2(test_sign, eigsigns, numBasis, training_scores, A, A_labels);
 %     subplot(4, 3, 12), cf = reshape(closest_sign, M, N); pcolor(flipud(cf)), shading interp, colormap(gray)
 %     title(strcat('best match: ', num2str(pred)))
        
@@ -287,7 +287,7 @@ end
 cp = classperf(known_classes,predicted_classes);
 
 fprintf('PCA - PCA Basis: %d CorrectRate: %f ErrorRate: %f \n',...
-    40,...
+    numBasis,...
     cp.CorrectRate,cp.ErrorRate);
 
 fig = figure;

@@ -62,7 +62,7 @@ num_signs = 43;
 % X - 1xN matrix, columns are the data vectors to be classified
 
 num_training_data = size(A_labels,1);
-num_features = 40;  % switch around
+num_features = 120;  % switch around
 
 P = zeros(1,num_signs);
 S = zeros(num_features,num_features,num_signs);
@@ -85,7 +85,7 @@ test_label_zb=bayes_classifier(m,S,P,test_data(:,1:num_features)');
 cp = classperf(signstest.classes,test_label_zb);
 
 fprintf('Bayes - PCA Basis: %d CorrectRate: %f ErrorRate: %f \n',...
-    40,...
+    num_features,...
     cp.CorrectRate,cp.ErrorRate);
 
 fig = figure;
