@@ -39,11 +39,12 @@ else
 end
 
 % Training data
-A = signstrain.A;
-A_labels = signstrain.classes;
+tr_images = signstrain.A;
+tr_labels = signstrain.classes;
 
 % Test data
-test_data = signstest.A;
+test_images = signstest.A;
+test_labels = signstest.classes;
 
 % Image dimensions
 M = 50;
@@ -52,6 +53,17 @@ num_pixels = M*N;
 
 num_signs = 43;
 
+%% Use PCA
+% Perform dimensionality reduction
+numBasis = 120;
+[V,D] = pca_basis(tr_images,numBasis);
+
+% Produce a column vector of eigenvalues
+D = diag(D);
+
+% Projections
+train_projection = tr_images*V;
+test_projection = test_images*V;
 
 %% 2. Naive Bayes on first 100 eigenvalues of PCA
 
@@ -61,24 +73,28 @@ num_signs = 43;
 % P - c-dimensional vector, a priori probability of jth class
 % X - 1xN matrix, columns are the data vectors to be classified
 
-num_training_data = size(A_labels,1);
+num_training_data = size(tr_labels,1);
 num_features = 120;  % switch around
 
 P = zeros(1,num_signs);
 S = zeros(num_features,num_features,num_signs);
 m = zeros(num_features,num_signs);
-for i = 1:num_signs
+for i = 0:(num_signs-1)
     % P: c-dimensional vector, whose j-th component is the a priori
     % probability of the j-th class.
-    P(i) = sum(A_labels == i)/num_training_data; 
+    P(i+1) = sum(tr_labels == i)/num_training_data; 
+    % TODO: double check on dimensions for mean and covariance
     % m - mean: 1xc matrix, jth column is mean of the jth class
-    m(:,i) = mean(A(A_labels'==i,1:num_features))';
-    S(:,:,i) = cov(A(A_labels'==i,1:num_features));
+    m(:,i+1) = mean(tr_images(tr_labels'==i,1:num_features))';
+    S(:,:,i+1) = cov(tr_images(tr_labels'==i,1:num_features))';
 end
 
-test_label_zb=bayes_classifier(m,S,P,test_data(:,1:num_features)');
+train_label_zb=bayes_classifier(m,S,P,train_projection(:,1:num_features)');
+test_label_zb=bayes_classifier(m,S,P,test_projection(:,1:num_features)');
 
-%% Compuare with testClasses
+%% Compare with testClasses
+% Note: Very inaccurate, set num_features and numBasis to 50 to run it
+% faster. Also comment out train_label_zb for faster run.
 
 %% uncomment when prediction portion is implemented
 % check the performance of the model
@@ -87,6 +103,13 @@ cp = classperf(signstest.classes,test_label_zb);
 fprintf('Bayes - PCA Basis: %d CorrectRate: %f ErrorRate: %f \n',...
     num_features,...
     cp.CorrectRate,cp.ErrorRate);
+
+% Performance of training data
+tcp = classperf(signstrain.classes,train_label_zb);
+
+fprintf('Train Bayes - PCA Basis: %d CorrectRate: %f ErrorRate: %f \n',...
+    num_features,...
+    tcp.CorrectRate,tcp.ErrorRate);
 
 fig = figure;
 [C, order] = confusionmat(signstest.classes, test_label_zb);
