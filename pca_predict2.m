@@ -1,4 +1,4 @@
-function [pred, closest_face] = pca_predict(test_face, eigfaces, k, training_scores, training_faces, training_labels)
+function [pred, closest_face] = pca_predict2(test_face, eigfaces, k, training_scores, training_faces, training_labels)
 %
 % This function projects the input face and training data onto a 
 % k-dimensional subspace spanned by k PCA vectors. The projection

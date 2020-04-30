@@ -1,156 +1,91 @@
-function output = detect_roundness(RGB)
+%% Nicholas Butta
+%  525.670 Machine Learning for Signal Processing
+%  Spring 2020
 
-%%  Detect roundness....
+% Function to compute roundness of the signs...
+% Needs some work still
 
-    % 
-    % % Try boosting contrast first before thresholding
-    LAB1 = rgb2lab(RGB_rescaled);
-    L = LAB1(:,:,1)/100;
-    L1 = adapthisteq(L, 'NumTiles', [4 4], 'ClipLimit', .1);     
-    LAB1(:,:,1) = L1*100;
-    J1 = lab2rgb(LAB1);
-    subplot(3, 5, 2), imshow(J1)
+function features = detect_roundness(basePath, paths, roiX1, roiY1, roiX2, roiY2)
 
-    GRAY = rgb2gray(J1);
-    % Identifying round objects for detecting round signs
-    %threshold = graythresh(GRAY);
-    BW = imbinarize(GRAY);
-    notBW = ~BW;
+    num_signs = length(paths);
 
-    subplot(3, 6, 7), imshow(BW)
-    BW = bwareaopen(BW,100);
-    subplot(3, 6, 8), imshow(BW)
-    se = strel('disk',2);
-    BW = imclose(BW,se);
-    subplot(3, 6, 9), imshow(BW)
-    BW = imfill(BW,'holes');
-    subplot(3, 6, 10), imshow(BW)
-    [B,L] = bwboundaries(BW, 'noholes');
-    subplot(3, 6, 11), imshow(BW)
+    features = zeros(num_signs, 1);
 
-    subplot(3, 6, 13), imshow(notBW)
-    notBW = bwareaopen(notBW,100);
-    subplot(3, 6, 14), imshow(notBW)
-    se = strel('disk',2);
-    notBW = imclose(notBW,se);
-    subplot(3, 6, 15), imshow(notBW)
-    notBW = imfill(~notBW,'holes');
-    subplot(3, 6, 16), imshow(notBW)
-    [notB, notL] = bwboundaries(notBW, 'noholes');
-    subplot(3, 6, 17), imshow(notBW)
+    for i = 1:num_signs
+        
+        % Read in the image at the path
+        RGB = imread([basePath, char(paths(i))]);
 
-    subplot(3, 6, 12), imshow(label2rgb(L,@jet,[.5 .5 .5]))
-    hold on
-    for k = 1:length(B)
-      boundary = B{k};
-      plot(boundary(:,2),boundary(:,1),'w','LineWidth',2)
+        %RGB_roi = RGB(roiY1(i):roiY2(i), roiX1(i):roiX2(i), :);
+        
+        % Resize the image to an experimentally-determined size
+        %RGB_rescaled = imresize(RGB_roi, [50 50]);
+        
+        GRAY = rgb2gray(RGB);
+        % Identifying round objects for detecting round signs
+        %threshold = graythresh(GRAY);
+        BW = imbinarize(GRAY);
+
+        figure
+        
+        subplot(3, 6, 1)
+        imshow(RGB)
+        
+        subplot(3, 6, 2)
+        imshow(GRAY)
+        
+        subplot(3, 6, 7)
+        imshow(BW)
+        
+        BW = bwareaopen(BW,100);
+        subplot(3, 6, 8)
+        imshow(BW)
+        
+        se = strel('disk',2);
+        BW = imclose(BW,se);
+        subplot(3, 6, 9)
+        imshow(BW)
+        
+        BW = imfill(BW,'holes');
+        subplot(3, 6, 10)
+        imshow(BW)
+        
+        [B,L] = bwboundaries(BW, 'noholes');
+        subplot(3, 6, 11)
+        imshow(BW)
+
+        figure
+        imshow(BW, []);
+        title('Cleaned Binary Image')
+        hold on
+
+        [labeledImage, numberOfObjcts] = bwlabel(BW);
+        blobMeasurements = regionprops(labeledImage,'Perimeter','Area', 'Centroid'); 
+        % for square ((a>17) && (a<20))
+        % for circle ((a>13) && (a<17))
+        % for triangle ((a>20) && (a<30))
+        circularities = [blobMeasurements.Perimeter].^2 ./ (4 * pi * [blobMeasurements.Area]);
+        hold on;
+        % Say what they are
+        for blobNumber = 1 : numberOfObjcts
+          if circularities(blobNumber) < 1.19
+            message = sprintf('The circularity of object #%d is %.3f, so the object is a circle',...
+              blobNumber, circularities(blobNumber));
+            theLabel = 'Circle';
+          elseif circularities(blobNumber) < 1.40
+            message = sprintf('The circularity of object #%d is %.3f, so the object is a Rectangle',...
+              blobNumber, circularities(blobNumber));
+            theLabel = 'Rectangle';
+          else
+            message = sprintf('The circularity of object #%d is %.3f, so the object is a triangle',...
+              blobNumber, circularities(blobNumber));
+            theLabel = 'Triangle';
+          end
+          text(blobMeasurements(blobNumber).Centroid(1), blobMeasurements(blobNumber).Centroid(2),...
+            theLabel, 'Color', 'r');
+          %uiwait(msgbox(message));
+        end
+                
     end
-
-    stats = regionprops(L,'Area','Centroid');
-
-    threshold = 0.84;
-
-    % loop over the boundaries
-    for k = 1:length(B)
-
-      % obtain (X,Y) boundary coordinates corresponding to label 'k'
-      boundary = B{k};
-
-      % compute a simple estimate of the object's perimeter
-      delta_sq = diff(boundary).^2;    
-      perimeter = sum(sqrt(sum(delta_sq,2)));
-
-      % obtain the area calculation corresponding to label 'k'
-      area = stats(k).Area;
-
-      % compute the roundness metric
-      metric = 4*pi*area/perimeter^2;
-
-      % display the results
-      metric_string = sprintf('%2.2f',metric);
-
-      % mark objects above the threshold with a black circle
-      if metric > threshold
-        centroid = stats(k).Centroid;
-        plot(centroid(1),centroid(2),'ko');
-        title('Sign is round!')
-      else 
-        title('Sign is NOT round!')
-      end
-
-      text(boundary(1,2)-10,boundary(1,1)+10,metric_string,...
-           'FontSize',8,'FontWeight','bold')
-
-    end
-
-    subplot(3, 6, 18), imshow(label2rgb(notL,@jet,[.5 .5 .5]))
-    hold on
-    for k = 1:length(notB)
-      boundary = notB{k};
-      plot(boundary(:,2),boundary(:,1),'w','LineWidth',2)
-    end
-
-    stats = regionprops(notL,'Area','Centroid');
-
-    % loop over the boundaries
-    for k = 1:length(notB)
-
-      % obtain (X,Y) boundary coordinates corresponding to label 'k'
-      boundary = notB{k};
-
-      % compute a simple estimate of the object's perimeter
-      delta_sq = diff(boundary).^2;    
-      perimeter = sum(sqrt(sum(delta_sq,2)));
-
-      % obtain the area calculation corresponding to label 'k'
-      area = stats(k).Area;
-
-      % compute the roundness metric
-      metric = 4*pi*area/perimeter^2;
-
-      % display the results
-      metric_string = sprintf('%2.2f',metric);
-
-      % mark objects above the threshold with a black circle
-      if metric > threshold
-        centroid = stats(k).Centroid;
-        plot(centroid(1),centroid(2),'ko');
-        title('Sign is round!')
-      else 
-        title('Sign is NOT round!')
-      end
-
-      text(boundary(1,2)-10,boundary(1,1)+10,metric_string,...
-           'FontSize',8,'FontWeight','bold')
-
-    end
-
-
-    title(['Metrics closer to 1 indicate that ',...
-           'the object is approximately round'])
-
-
-%STATS = regionprops(L, 'all'); % we need 'BoundingBox' and 'Extent'
-% figure,
-% imshow(RGB),
-% title('Results');
-% hold on
-% for i = 1 : length(STATS)
-%   W(i) = uint8(abs(STATS(i).BoundingBox(3)-STATS(i).BoundingBox(4)) < 0.1);
-%   W(i) = W(i) + 2 * uint8((STATS(i).Extent - 1) == 0 );
-%   centroid = STATS(i).Centroid;
-%   switch W(i)
-%       case 1
-%           plot(centroid(1),centroid(2),'wO');
-%       case 2
-%           plot(centroid(1),centroid(2),'wX');
-%       case 3
-%           plot(centroid(1),centroid(2),'wS');
-%   end
-% end
-
-%fgetl(fID); % discard line with column headers
-    
-%f = textscan(fID, '%*d %*d %d %d %d %d %d', 'Delimiter', ';');
 
 end
