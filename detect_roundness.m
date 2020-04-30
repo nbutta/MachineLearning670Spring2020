@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 %% Nicholas Butta
 %  525.670 Machine Learning for Signal Processing
 %  Spring 2020
@@ -85,7 +86,6 @@ function features = detect_roundness(basePath, paths, roiX1, roiY1, roiX2, roiY2
             theLabel, 'Color', 'r');
           %uiwait(msgbox(message));
         end
-                
     end
 
 end

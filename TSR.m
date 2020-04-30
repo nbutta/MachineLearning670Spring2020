@@ -19,7 +19,10 @@ clc         % Comannd Line Clear
 
 %% Load the training csv
 
-sBasePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/'; 
+% Data set: https://www.kaggle.com/meowmeowmeowmeowmeow/gtsrb-german-traffic-sign
+
+% GTSRB folder one directory up
+sBasePath = fullfile(fileparts(fullfile(mfilename('fullpath'))),'..','gtsrb-german-traffic-sign/');
 
 sTrainingPath = [sBasePath, 'Train.csv'];
 fID = fopen([sBasePath, 'Train.csv'], 'r');
@@ -58,6 +61,29 @@ output = preprocess_data(sBasePath, tbl);
 % 
 % output = do_kmeans(RGB);
 
+trainPaths = tbl.Path;
+trainRoiX1 = tbl.Roi_X1;
+trainRoiY1 = tbl.Roi_Y1;
+trainRoiX2 = tbl.Roi_X2;
+trainRoiY2 = tbl.Roi_Y2;
+%i = 38549;
+i = randi([1 length(trainPaths)]);
+RGB = imread([sBasePath, char(trainPaths(i))]);
+
+
+%%  Detect roundness...
+
+RGB_cropped = RGB(trainRoiY1(i):trainRoiY2(i), trainRoiX1(i):trainRoiX2(i), :);
+montage({RGB, RGB_cropped});
+RGB_rescaled = imresize(RGB, [50 50]);
+figure, subplot(3, 5, 1), imshow(RGB_rescaled)
+
+[~] = detect_roundness(RGB_rescaled);
+
+
+%% KMeans the image
+
+output = do_kmeans(RGB);
 
 %% Apply PCA
 
