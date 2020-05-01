@@ -8,11 +8,11 @@
 % also for selecting which test images to predict.
 
 % We first get the best resolution images of each class using resTrim which
-% is a percentage of images of each class to take with the best resolution
+% is a percentage of images of each class to take with the best resolution.
 
 % We then get the best contrast images of each class using contrastTrim 
 % which is a percentage of images of each class to take with the best
-% contrast
+% contrast.
 
 % Final number of images = (Original num. images * resTrim) * contrastTrim)
 
@@ -37,7 +37,8 @@ function [paths, widths, heights, roiX1, roiY1, roiX2, roiY2, classes] = reduce_
     roiY2 = tbl.Roi_Y2;
     classes = tbl.ClassId;
     
-    mean(widths.*heights)
+    %display('avg. resolution before');
+    %mean(widths.*heights)
 
     % Sort all the data by class ID (ascending)
     [classes, I] = sort(classes);
@@ -49,12 +50,12 @@ function [paths, widths, heights, roiX1, roiY1, roiX2, roiY2, classes] = reduce_
     roiX2 = roiX2(I);
     roiY2 = roiY2(I);
 
-    num_uniq_signs = 43;
+    num_uniq_signs = length(unique(classes));
 
-    figure
-    histogram(classes);
+%     figure
+%     histogram(classes);
 
-    %% Resolution
+    %% Resolution Trimming
 
     best_res_ind = [];
 
@@ -83,8 +84,6 @@ function [paths, widths, heights, roiX1, roiY1, roiX2, roiY2, classes] = reduce_
     % ylabel('Number of high resolution images')
     % title('Number of high res images per class')
 
-    %% Update for only high res images
-
     num_high_res_signs = length(best_res_ind);
 
     classes = classes(best_res_ind);
@@ -96,12 +95,13 @@ function [paths, widths, heights, roiX1, roiY1, roiX2, roiY2, classes] = reduce_
     roiX2 = roiX2(best_res_ind);
     roiY2 = roiY2(best_res_ind);
 
-    figure;
-    histogram(classes);
+%     figure;
+%     histogram(classes);
     
-    mean(widths.*heights)
+    %display('avg. resolution after');
+    %mean(widths.*heights)
 
-    %% Contrast
+    %% Contrast Trimming
 
     best_var_ind = [];
 
@@ -112,7 +112,7 @@ function [paths, widths, heights, roiX1, roiY1, roiX2, roiY2, classes] = reduce_
         % Read in the image at the path
         RGB = imread([basePath, char(paths(i))]);
 
-        % Resize to common size
+        % Resize to common size for intentity binning
         RGB = imresize(RGB, [50 50]);
 
         % Compute the intensity histogram
@@ -123,7 +123,8 @@ function [paths, widths, heights, roiX1, roiY1, roiX2, roiY2, classes] = reduce_
 
     end
     
-    mean(intensity_var)
+    %display('avg. contrast before');
+    %mean(intensity_var)
 
     for i = 1:num_uniq_signs
 
@@ -153,24 +154,11 @@ function [paths, widths, heights, roiX1, roiY1, roiX2, roiY2, classes] = reduce_
     roiX2 = roiX2(best_var_ind);
     roiY2 = roiY2(best_var_ind);
 
-    figure;
-    histogram(classes);
+%     figure;
+%     histogram(classes);
     
-    mean(intensity_var(best_var_ind))
-
-    % % Sort the intensity variance (ascending)
-    % [intensity_var, I_var] = sort(intensity_var);
-    % 
-    % % Keep track of how many images of each type have high contrast
-    % high_contrast = zeros(1, num_uniq_signs);
-    % 
-    % high_contrast_classes = classes(I_var(1:round(.75*end)));
-    % 
-    % figure;
-    % histogram(high_contrast_classes)
-    % xlabel('Class ID')
-    % ylabel('Number of high contrast images')
-    % title('Number of high contrast images per class')
+%     display('avg. contrast after');
+%     mean(intensity_var(best_var_ind))
 
     %% Examples
 

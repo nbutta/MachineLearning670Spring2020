@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 %% Nicholas Butta
 %  525.670 Machine Learning for Signal Processing
 %  Spring 2020
