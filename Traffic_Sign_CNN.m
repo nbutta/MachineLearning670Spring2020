@@ -59,10 +59,16 @@ numBasis = 120;
 train_projection = tr_images*V;
 test_projection = test_images*V;
 
-% Set labels for CNN
+% Set train labels for CNN
 train_cnn_labels = zeros(length(tr_labels),max(tr_labels)+1);
 for i=1:length(tr_labels)
    train_cnn_labels(i,tr_labels(i)+1) = 1; 
+end
+
+% Set test labels for CNN
+test_cnn_labels = zeros(length(test_labels),max(test_labels)+1);
+for i=1:length(test_labels)
+   test_cnn_labels(i,test_labels(i)+1) = 1; 
 end
 
 %% Solve a Pattern Recognition Problem with a Neural Network
@@ -103,9 +109,15 @@ performance = perform(net,t,y)
 tind = vec2ind(t);
 yind = vec2ind(y);
 percentErrors = sum(tind ~= yind)/numel(tind);
+correctRate = 1-percentErrors;
 
 % View the Network
 view(net)
+
+fprintf('CNN Testing Data from Training - PCA Basis: %d Performance: %d CorrectRate: %f ErrorRate: %f \n',...
+    numBasis,...
+    performance,...
+    correctRate, percentErrors);
 
 % Plots
 % Uncomment these lines to enable various plots.
@@ -137,5 +149,22 @@ view(net)
 %     % Simulink Coder tools.
 %     gensim(net);
 % end
+
+%% Test against testing data
+x1 = test_projection';
+t1 = test_cnn_labels';
+% Test the Network
+y1 = net(x1);
+e1 = gsubtract(t1,y1);
+performance1 = perform(net,t1,y1);
+tind1 = vec2ind(t1);
+yind1 = vec2ind(y1);
+percentErrors1 = sum(tind1 ~= yind1)/numel(tind1);
+correctRate1 = 1-percentErrors1;
+
+fprintf('CNN Testing Data from Test - PCA Basis: %d Performance: %d CorrectRate: %f ErrorRate: %f \n',...
+    numBasis,...
+    performance1,...
+    correctRate1, percentErrors1);
 
 
