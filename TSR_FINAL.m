@@ -8,7 +8,7 @@ clear all   % clear workspace
 close all   % close all figure windows
 clc         % Comannd Line Clear
 
-%% Setup
+%% Setup (replace as necessary)
 
 basePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/'; 
 trainCsv = 'Train.csv';
@@ -17,27 +17,40 @@ metaCsv = 'Meta.csv';
 
 %% Data Conditioning
 
-% [OPTIONAL]Only use the highest quality training and test images
+% [OPTIONAL] Only use the highest quality training and test images
 [trainPaths, trainWidths, trainHeights, trainRoiX1, trainRoiY1, trainRoiX2, trainRoiY2, trainClasses]  = reduce_dataset(basePath, trainCsv, .75, .75);
 [testPaths, testWidths, testHeights, testRoiX1, testRoiY1, testRoiX2, testRoiY2, testClasses]  = reduce_dataset(basePath, testCsv, .75, .75);
 
-% [OPTIONAL] Do further histogram equalization?
+% Get the resized images in matrix form. Each row is a grey intensity image
+% This captures the ROI before resizing.
+% This essentially captures creates our dataset where the pixel intensities
+% are the features we are using for each sign.
+trainImages = get_images(basePath, trainPaths, trainRoiX1, trainRoiY1, trainRoiX2, trainRoiY2, 50, 50, 'roi');
+testImages = get_images(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2, 50, 50, 'roi');
+
+% [OPTIONAL] Do further histogram equalization to improve contrast
+
+figure;
+imshow(reshape(trainImages(5,:), 50, 50)./255);
+
+trainImages = boost_gray_contrast(trainImages);
+testImages = boost_gray_contrast(testImages);
+
+figure;
+imshow(reshape(trainImages(5,:), 50, 50)./255);
 
 % [OPTIONAL] Generate new data to reduce class skew
 
 %% Feature Extraction
 
 % Extract Hue Histogram features
-train_hue_features = get_hue_histograms(basePath, trainPaths, trainRoiX1, trainRoiY1, trainRoiX2, trainRoiY2, 100);
-test_hue_features = get_hue_histograms(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2, 100);
+%train_hue_features = get_hue_histograms(basePath, trainPaths, trainRoiX1, trainRoiY1, trainRoiX2, trainRoiY2, 100);
+%test_hue_features = get_hue_histograms(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2, 100);
 
 % [NOT WORKING WELL] Extract a "roundness" feature for each image
 % roundness_features = detect_roundness(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2);
 
 % Extract PCA features
-
-trainImages = get_images(basePath, trainPaths, trainRoiX1, trainRoiY1, trainRoiX2, trainRoiY2, 50, 50);
-testImages = get_images(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2, 50, 50);
 
 [eigsigns, eigvals] = pca_basis(trainImages, 40);
 
