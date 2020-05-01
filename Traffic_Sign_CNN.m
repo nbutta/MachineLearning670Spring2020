@@ -91,7 +91,7 @@ t = train_cnn_labels';
 trainFcn = 'trainscg';  % Scaled conjugate gradient backpropagation.
 
 % Create a Pattern Recognition Network
-hiddenLayerSize = 10;
+hiddenLayerSize = 70;   % can customize for better results
 net = patternnet(hiddenLayerSize, trainFcn);
 
 % Setup Division of Data for Training, Validation, Testing
@@ -105,7 +105,7 @@ net.divideParam.testRatio = 15/100;
 % Test the Network
 y = net(x);
 e = gsubtract(t,y);
-performance = perform(net,t,y)
+performance = perform(net,t,y);
 tind = vec2ind(t);
 yind = vec2ind(y);
 percentErrors = sum(tind ~= yind)/numel(tind);
@@ -170,6 +170,7 @@ fprintf('CNN Testing Data from Test - PCA Basis: %d Performance: %d CorrectRate:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Part 2 with Hue Histogram
+%  Performance is quite a bit better with the PCA basis
 %% Setup
 
 basePath = 'C:/Users/casxi/Google Drive/Documents/JHU/Machine Learning for Signal Processing/Final Project/gtsrb-german-traffic-sign/'; 
@@ -218,8 +219,8 @@ end
 %   train_hue_features - input data.
 %   train_hh_labels - target data.
 
-x = train_hue_features';
-t = train_hh_labels';
+xx = train_hue_features';
+tt = train_hh_labels';
 
 % Choose a Training Function
 % For a list of all training functions type: help nntrain
@@ -229,41 +230,42 @@ t = train_hh_labels';
 trainFcn = 'trainscg';  % Scaled conjugate gradient backpropagation.
 
 % Create a Pattern Recognition Network
-hiddenLayerSize = 10;   % can customize for better results
-net = patternnet(hiddenLayerSize, trainFcn);
+hiddenLayerSize = 10;   % can customize for better results, more or less similar
+neth = patternnet(hiddenLayerSize, trainFcn);
 
 % Setup Division of Data for Training, Validation, Testing
-net.divideParam.trainRatio = 70/100;
-net.divideParam.valRatio = 15/100;
-net.divideParam.testRatio = 15/100;
+neth.divideParam.trainRatio = 70/100;
+neth.divideParam.valRatio = 15/100;
+neth.divideParam.testRatio = 15/100;
 
 % Train the Network
-[net,tr] = train(net,x,t);
+[neth,tr] = train(neth,xx,tt);
 
 % Test the Network
-y = net(x);
-e = gsubtract(t,y);
-performance = perform(net,t,y)
+yy = neth(xx);
+ee = gsubtract(tt,yy);
+performance = perform(neth,tt,yy);
 tind = vec2ind(t);
 yind = vec2ind(y);
 percentErrors = sum(tind ~= yind)/numel(tind);
+correctRate = 1-percentErrors;
 
 % View the Network
-view(net)
+view(neth)
 
 fprintf('CNN Testing Data from Training - Hue Histogram Features Performance: %d CorrectRate: %f ErrorRate: %f \n',...
     performance,...
     correctRate, percentErrors);
 
 %% Test against testing data
-x1 = test_hue_features';
-t1 = test_hh_labels';
+xx1 = test_hue_features';
+tt1 = test_hh_labels';
 % Test the Network
-y1 = net(x1);
-e1 = gsubtract(t1,y1);
-performance1 = perform(net,t1,y1);
-tind1 = vec2ind(t1);
-yind1 = vec2ind(y1);
+yy1 = neth(xx1);
+ee1 = gsubtract(tt1,yy1);
+performance1 = perform(neth,tt1,yy1);
+tind1 = vec2ind(tt1);
+yind1 = vec2ind(yy1);
 percentErrors1 = sum(tind1 ~= yind1)/numel(tind1);
 correctRate1 = 1-percentErrors1;
 
