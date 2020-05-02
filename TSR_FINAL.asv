@@ -64,9 +64,9 @@ test_pca_features = testImagesBoosted*eigsigns;
 %% Modeling/Prediction
 
 % PCA based prediction
-knn_pred_classes = knn_nick(1, train_pca_features, trainClasses, test_pca_features);
+knn_predicted_classes_pca = knn_nick(1, train_pca_features, trainClasses, test_pca_features);
 
-[knn_pred_classes_names, knn_pred_classes_categ] = classid_to_name(knn_pred_classes);
+[knn_pred_classes_names, knn_pred_classes_categ] = classid_to_name(knn_predicted_classes_pca);
 [test_known_classes_names, test_known_classes_categ] = classid_to_name(testClasses);
 
 fig = figure;
@@ -80,7 +80,7 @@ cm.Normalization = 'absolute';
 
 fig = figure;
 %[C, order] = confusionmat(testClasses, knn_predicted_classes_pca);
-cm = confusionchart(test_known_classes_categ, knn_pred_classes_categ, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
+cm = confusionchart(test_known_classes_categ, knn_predicted_classes_pca, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
 
 % This will sort based on the true positive rate
 cm.Normalization = 'row-normalized'; 
