@@ -13,7 +13,8 @@ clc         % Comannd Line Clear
 %% Sensor/ Signal Capture 
 % Setup paths to datasets (replace as necessary)
 
-basePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/'; 
+%basePath = 'C:/Users/j39950/Documents/JHU/Courses/2020/670 Machine Learning/Proj/Traffic Sign Recognition/Kaggle/';
+basePath = fullfile(fileparts(fullfile(mfilename('fullpath'))),'..','gtsrb-german-traffic-sign/');
 trainCsv = 'Train.csv';
 testCsv = 'Test.csv';
 metaCsv = 'Meta.csv';
@@ -34,14 +35,33 @@ testImages = get_images(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, te
 
 % [OPTIONAL] Do further histogram equalization to improve contrast
 
-figure;
-imshow(reshape(trainImages(5,:), 50, 50)./255);
+%figure;
+%imshow(reshape(trainImages(5,:), 50, 50)./255);
 
 trainImagesBoosted = boost_gray_contrast(trainImages);
 testImagesBoosted = boost_gray_contrast(testImages);
 
-figure;
-imshow(reshape(trainImagesBoosted(5,:), 50, 50)./255);
+%figure;
+%imshow(reshape(trainImagesBoosted(5,:), 50, 50)./255);
+
+% Information for GTSRB Analysis Tool
+signstrain.classes = trainClasses;
+signstrain.paths = trainPaths;
+signstrain.widths = trainWidths;
+signstrain.heights = trainHeights;
+signstrain.roiX1 = trainRoiX1;
+signstrain.roiY1 = trainRoiY1;
+signstrain.roiX2 = trainRoiX2;
+signstrain.roiY2 = trainRoiY2;
+
+signstest.classes = testClasses;
+signstest.paths = testPaths;
+signstest.widths = testWidths;
+signstest.heights = testHeights;
+signstest.roiX1 = testRoiX1;
+signstest.roiY1 = testRoiY1;
+signstest.roiX2 = testRoiX2;
+signstest.roiY2 = testRoiY2;
 
 % [OPTIONAL] Generate new data to reduce class skew
 
@@ -55,41 +75,101 @@ imshow(reshape(trainImagesBoosted(5,:), 50, 50)./255);
 % roundness_features = detect_roundness(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2);
 
 % Extract PCA features
-
-[eigsigns, eigvals] = pca_basis(trainImagesBoosted, 40);
+numBasis = 40;
+[eigsigns, eigvals] = pca_basis(trainImagesBoosted, numBasis);
 
 train_pca_features = trainImagesBoosted*eigsigns;
 test_pca_features = testImagesBoosted*eigsigns;
 
-%% Modeling/Prediction
-
-% PCA based prediction
-knn_pred_classes = knn_nick(1, train_pca_features, trainClasses, test_pca_features);
-
-[knn_pred_classes_names, knn_pred_classes_categ] = classid_to_name(knn_pred_classes);
 [test_known_classes_names, test_known_classes_categ] = classid_to_name(testClasses);
 
-fig = figure;
+%% Modeling/Prediction KNN
+% PCA based prediction
+k_neighbors = 5;
+%knn_pred_classes = knn_nick(1, train_pca_features, trainClasses, test_pca_features);
+knn_pred_classes = knn_predict(k_neighbors,train_pca_features,trainClasses,test_pca_features);
+
+[knn_pred_classes_names, knn_pred_classes_categ] = classid_to_name(knn_pred_classes);
+
+figure;
 %[C, order] = confusionmat(testClasses, knn_predicted_classes_pca);
 cm = confusionchart(test_known_classes_names, knn_pred_classes_names, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
-
 % This will sort based on the true positive rate
 cm.Normalization = 'row-normalized'; 
 sortClasses(cm,'descending-diagonal')
 cm.Normalization = 'absolute';
+title(['KNN - PCA Basis: ',num2str(numBasis), ' k-neighbors: ',num2str(k_neighbors)]);
 
-fig = figure;
+figure;
 %[C, order] = confusionmat(testClasses, knn_predicted_classes_pca);
 cm = confusionchart(test_known_classes_categ, knn_pred_classes_categ, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
-
 % This will sort based on the true positive rate
 cm.Normalization = 'row-normalized'; 
 sortClasses(cm,'descending-diagonal')
 cm.Normalization = 'absolute';
+title(['KNN Categories - PCA Basis: ',num2str(numBasis), ' k-neighbors: ',num2str(k_neighbors)]);
+
+% check the performance of the model
+cp = classperf(test_known_classes_categ,knn_pred_classes_categ);
+fprintf('KNN Categories - PCA Basis: %d k-neighbors: %d CorrectRate: %f ErrorRate: %f \n',...
+    numBasis,...
+    k_neighbors,...
+    cp.CorrectRate,cp.ErrorRate);
+cp = classperf(test_known_classes_names,knn_pred_classes_names);
+fprintf('KNN - PCA Basis: %d k-neighbors: %d CorrectRate: %f ErrorRate: %f \n',...
+    numBasis,...
+    k_neighbors,...
+    cp.CorrectRate,cp.ErrorRate);
+
+% write output for GTSRB Analysis Tool
+generate_tsrb_results('KNN_Results.csv',signstrain,signstest,knn_pred_classes);
+
+%% Modeling/Prediction SVM
+% Train the model
+mdl = svm_train(train_pca_features, trainClasses);
+
+% Test the model
+svm_pred_labels = svm_predict(mdl,test_pca_features);
+
+[svm_pred_classes_names, svm_pred_classes_categ] = classid_to_name(svm_pred_labels);
+
+
+figure;
+cm = confusionchart(test_known_classes_names, svm_pred_classes_names, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
+% This will sort based on the true positive rate
+cm.Normalization = 'row-normalized'; 
+sortClasses(cm,'descending-diagonal')
+cm.Normalization = 'absolute';
+title(['SVM - PCA Basis: ',num2str(numBasis)]);
+
+figure;
+cm = confusionchart(test_known_classes_categ, svm_pred_classes_categ, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
+% This will sort based on the true positive rate
+cm.Normalization = 'row-normalized'; 
+sortClasses(cm,'descending-diagonal')
+cm.Normalization = 'absolute';
+title(['SVM Categories - PCA Basis: ',num2str(numBasis)]);
+
+% check the performance of the model
+cp = classperf(test_known_classes_categ,svm_pred_classes_categ);
+fprintf('SVM Categories - PCA Basis: %d CorrectRate: %f ErrorRate: %f \n',...
+    numBasis,...
+    cp.CorrectRate,cp.ErrorRate);
+cp = classperf(test_known_classes_names,svm_pred_classes_names);
+fprintf('SVM - PCA Basis: %d CorrectRate: %f ErrorRate: %f \n',...
+    numBasis,...
+    cp.CorrectRate,cp.ErrorRate);
+
+% write output for GTSRB Analysis Tool
+generate_tsrb_results('SVM_Results.csv',signstrain,signstest,svm_pred_labels);
 
 % Example of KNN classification using hue features
 % knn_predicted_classes_hue = knn_nick(3, train_hue_features, trainClasses, test_hue_features);
 % sum(knn_predicted_classes_hue~=testClasses)/length(testClasses)
+
+%% Modeling/Prediction CNN
+
+%% Modeling/Prediction Naive Bayes
 
 %% Ignore this for now.. Multi tiered classification  
 
