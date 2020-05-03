@@ -55,7 +55,7 @@ num_signs = 43;
 % construct a subspace with dimensionality H less than or equal to such 
 % that this subspace has the maximum dispersion for the projections. 
 % To extract this subspace, use Principal Component Analysis
-numBasis = 120;
+numBasis = 40;
 [eigsigns, eigvals] = pca_basis(A,numBasis);
 
 % Produce a column vector of eigenvalues
