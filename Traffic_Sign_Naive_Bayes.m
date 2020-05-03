@@ -55,7 +55,7 @@ num_signs = 43;
 
 %% Use PCA
 % Perform dimensionality reduction
-numBasis = 120;
+numBasis = 40;
 [V,D] = pca_basis(tr_images,numBasis);
 
 % Produce a column vector of eigenvalues
