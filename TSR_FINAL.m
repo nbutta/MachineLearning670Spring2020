@@ -48,8 +48,8 @@ imshow(reshape(trainImagesBoosted(5,:), 50, 50)./255);
 %% Feature Extraction
 
 % Extract Hue Histogram features
-%train_hue_features = get_hue_histograms(basePath, trainPaths, trainRoiX1, trainRoiY1, trainRoiX2, trainRoiY2, 100);
-%test_hue_features = get_hue_histograms(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2, 100);
+train_hue_features = get_hue_histograms(basePath, trainPaths, trainRoiX1, trainRoiY1, trainRoiX2, trainRoiY2, 100);
+test_hue_features = get_hue_histograms(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2, 100);
 
 % [NOT WORKING WELL] Extract a "roundness" feature for each image
 % roundness_features = detect_roundness(basePath, testPaths, testRoiX1, testRoiY1, testRoiX2, testRoiY2);
@@ -88,8 +88,29 @@ sortClasses(cm,'descending-diagonal')
 cm.Normalization = 'absolute';
 
 % Example of KNN classification using hue features
-% knn_predicted_classes_hue = knn_nick(3, train_hue_features, trainClasses, test_hue_features);
-% sum(knn_predicted_classes_hue~=testClasses)/length(testClasses)
+knn_predicted_classes_hue = knn_nick(1, train_hue_features, trainClasses, test_hue_features);
+%sum(knn_predicted_classes_hue~=testClasses)/length(testClasses)
+
+[knn_pred_classes_names, knn_pred_classes_categ] = classid_to_name(knn_predicted_classes_hue);
+%[test_known_classes_names, test_known_classes_categ] = classid_to_name(testClasses);
+
+fig = figure;
+%[C, order] = confusionmat(testClasses, knn_predicted_classes_pca);
+cm = confusionchart(test_known_classes_names, knn_pred_classes_names, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
+
+% This will sort based on the true positive rate
+cm.Normalization = 'row-normalized'; 
+sortClasses(cm,'descending-diagonal')
+cm.Normalization = 'absolute';
+
+fig = figure;
+%[C, order] = confusionmat(testClasses, knn_predicted_classes_pca);
+cm = confusionchart(test_known_classes_categ, knn_pred_classes_categ, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
+
+% This will sort based on the true positive rate
+cm.Normalization = 'row-normalized'; 
+sortClasses(cm,'descending-diagonal')
+cm.Normalization = 'absolute';
 
 %% Ignore this for now.. Multi tiered classification  
 
