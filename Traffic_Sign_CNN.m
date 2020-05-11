@@ -173,7 +173,8 @@ fprintf('CNN Testing Data from Test - PCA Basis: %d Performance: %d CorrectRate:
 %  Performance is quite a bit better with the PCA basis
 %% Setup
 
-basePath = 'C:/Users/casxi/Google Drive/Documents/JHU/Machine Learning for Signal Processing/Final Project/gtsrb-german-traffic-sign/'; 
+%basePath = 'C:/Users/casxi/Google Drive/Documents/JHU/Machine Learning for Signal Processing/Final Project/gtsrb-german-traffic-sign/'; 
+basePath = fullfile(fileparts(fullfile(mfilename('fullpath'))),'..','gtsrb-german-traffic-sign/');
 
 trainCsv = 'Train.csv';
 testCsv = 'Test.csv';
@@ -282,6 +283,10 @@ cnn_pred_classes_categ = cnn_pred_classes_categ';
 test_known_classes_names = test_known_classes_names';
 test_known_classes_categ = test_known_classes_categ';
 
+categories = {'speed', 'cancel', ...
+     'priority', 'prohibitory','warning', ...
+     'mandatory'};
+
 % trainClasses, testClasses
 % Set train labels for Hue Histogram Categories
 train_categ_labels = zeros(length(cnn_pred_classes_categ),6);
@@ -388,13 +393,31 @@ fprintf('CNN Testing Data from Test - Hue Histogram Features Performance: %d Cor
     performance111,...
     correctRate111, percentErrors111);
 
+pred_classes_categ = {''};
+
+for i = 1:length(test_known_classes_categ)
+    [val,idx] = max(yy11(:,i));
+    pred_classes_categ(i) = categories(idx);
+end
+
+pred_classes_categ = pred_classes_categ';
+
+figure;
+cm = confusionchart(test_known_classes_categ, pred_classes_categ, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
+% This will sort based on the true positive rate
+cm.Normalization = 'row-normalized'; 
+sortClasses(cm,'descending-diagonal')
+cm.Normalization = 'absolute';
+title('CNN Categorical: Histogram of Hues');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Part 3 with Improved Contrast PCA basis
 %  Performance is quite a bit better with the PCA basis
 %% Setup
 
-basePath = 'C:/Users/casxi/Google Drive/Documents/JHU/Machine Learning for Signal Processing/Final Project/gtsrb-german-traffic-sign/'; 
+%basePath = 'C:/Users/casxi/Google Drive/Documents/JHU/Machine Learning for Signal Processing/Final Project/gtsrb-german-traffic-sign/'; 
+basePath = fullfile(fileparts(fullfile(mfilename('fullpath'))),'..','gtsrb-german-traffic-sign/');
 
 trainCsv = 'Train.csv';
 testCsv = 'Test.csv';
@@ -516,6 +539,10 @@ cnn_pred_classes_categ = cnn_pred_classes_categ';
 test_known_classes_names = test_known_classes_names';
 test_known_classes_categ = test_known_classes_categ';
 
+categories = {'speed', 'cancel', ...
+     'priority', 'prohibitory','warning', ...
+     'mandatory'};
+
 % trainClasses, testClasses
 % Set train labels for Hue Histogram Categories
 train_categ_labels = zeros(length(cnn_pred_classes_categ),6);
@@ -626,6 +653,21 @@ fprintf('CNN Testing Data from Test - PCA Categorical - PCA Basis: %d Performanc
     performance6,...
     correctRate6, percentErrors6);
 
-figure, plotconfusion(t6,y6)
+%figure, plotconfusion(t6,y6)
 
+pred_classes_categ = {''};
 
+for i = 1:length(test_known_classes_categ)
+    [val,idx] = max(y6(:,i));
+    pred_classes_categ(i) = categories(idx);
+end
+
+pred_classes_categ = pred_classes_categ';
+
+figure;
+cm = confusionchart(test_known_classes_categ, pred_classes_categ, 'RowSummary','row-normalized','ColumnSummary','column-normalized');
+% This will sort based on the true positive rate
+cm.Normalization = 'row-normalized'; 
+sortClasses(cm,'descending-diagonal')
+cm.Normalization = 'absolute';
+title(['CNN Categorical: Histogram Equalization - PCA Basis: ',num2str(40)]);
